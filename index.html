@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CHROMASYNC — Govee × Spotify Color Sync</title>
+<meta name="description" content="CHROMASYNC syncs your Govee smart bulbs to your Spotify album art in real time. Open source local app."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;400;700;900&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #07090d;
+    --surface: #0d1017;
+    --border: rgba(255,255,255,0.07);
+    --text: #e4e8f0;
+    --muted: #404858;
+    --accent: #7efff5;
+    --r: 126; --g: 200; --b: 255;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── noise grain ── */
+  body::after {
+    content: '';
+    position: fixed; inset: 0; pointer-events: none; z-index: 999;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px;
+  }
+
+  /* ── background glow ── */
+  .bg-glow {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 0%, rgba(126,200,255,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(127,255,245,0.05) 0%, transparent 60%);
+  }
+
+  .wrap { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 0 32px; }
+
+  /* ── HEADER ── */
+  header {
+    padding: 48px 0 0;
+    display: flex; align-items: center; justify-content: space-between;
+    animation: fadeUp 0.8s ease both;
+  }
+
+  .logo {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900; font-size: 12px; letter-spacing: 0.35em;
+    text-transform: uppercase;
+  }
+  .logo-chroma {
+    color: rgb(var(--r), var(--g), var(--b));
+    filter: drop-shadow(0 0 12px rgba(var(--r),var(--g),var(--b),0.5));
+  }
+  .logo-sync { color: var(--muted); font-weight: 200; }
+
+  .header-tag {
+    font-size: 9px; letter-spacing: 0.2em; color: var(--muted);
+    text-transform: uppercase; border: 1px solid var(--border);
+    padding: 5px 12px; border-radius: 99px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 100px 0 80px;
+    animation: fadeUp 0.9s 0.1s ease both;
+  }
+
+  .hero-eyebrow {
+    font-size: 10px; letter-spacing: 0.25em; color: rgb(var(--r),var(--g),var(--b));
+    text-transform: uppercase; margin-bottom: 24px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .hero-eyebrow::before {
+    content: ''; display: block; width: 32px; height: 1px;
+    background: rgb(var(--r),var(--g),var(--b));
+  }
+
+  .hero-title {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900; font-size: clamp(36px, 7vw, 72px);
+    line-height: 1.05; letter-spacing: -0.02em;
+    margin-bottom: 28px;
+  }
+  .hero-title .dim { color: var(--muted); font-weight: 200; }
+  .hero-title .lit {
+    color: rgb(var(--r),var(--g),var(--b));
+    filter: drop-shadow(0 0 24px rgba(var(--r),var(--g),var(--b),0.4));
+  }
+
+  .hero-sub {
+    font-size: 14px; color: var(--muted); line-height: 1.8;
+    max-width: 520px; margin-bottom: 48px;
+  }
+
+  .pill-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .pill {
+    font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+    border: 1px solid var(--border); border-radius: 99px;
+    padding: 7px 16px; color: var(--muted);
+  }
+  .pill.accent {
+    border-color: rgba(var(--r),var(--g),var(--b),0.35);
+    color: rgb(var(--r),var(--g),var(--b));
+    background: rgba(var(--r),var(--g),var(--b),0.06);
+  }
+
+  /* ── HOW IT WORKS ── */
+  .section { padding: 80px 0; border-top: 1px solid var(--border); }
+  .section-label {
+    font-size: 10px; letter-spacing: 0.25em; color: var(--muted);
+    text-transform: uppercase; margin-bottom: 40px;
+  }
+
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+
+  .step {
+    padding: 28px; border: 1px solid var(--border); border-radius: 14px;
+    background: var(--surface); position: relative; overflow: hidden;
+    transition: border-color 0.3s;
+    animation: fadeUp 1s ease both;
+  }
+  .step:hover { border-color: rgba(var(--r),var(--g),var(--b),0.3); }
+  .step::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(var(--r),var(--g),var(--b),0.4), transparent);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .step:hover::before { opacity: 1; }
+
+  .step-num {
+    font-family: 'Unbounded', sans-serif; font-weight: 900;
+    font-size: 28px; color: rgba(var(--r),var(--g),var(--b),0.2);
+    margin-bottom: 16px; line-height: 1;
+  }
+  .step-title {
+    font-family: 'Unbounded', sans-serif; font-weight: 700;
+    font-size: 13px; margin-bottom: 10px;
+  }
+  .step-body { font-size: 11px; color: var(--muted); line-height: 1.7; }
+
+  /* ── CREDITS ── */
+  .credits {
+    padding: 80px 0;
+    border-top: 1px solid var(--border);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    animation: fadeUp 1.1s 0.2s ease both;
+  }
+
+  .credit-card {
+    padding: 28px; border: 1px solid var(--border); border-radius: 14px;
+    background: var(--surface);
+  }
+  .credit-label {
+    font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 14px;
+  }
+  .credit-name {
+    font-family: 'Unbounded', sans-serif; font-weight: 700;
+    font-size: 15px; margin-bottom: 8px;
+  }
+  .credit-desc { font-size: 11px; color: var(--muted); line-height: 1.6; margin-bottom: 18px; }
+  .credit-link {
+    font-size: 10px; letter-spacing: 0.1em;
+    color: rgb(var(--r),var(--g),var(--b));
+    text-decoration: none; text-transform: uppercase;
+    border-bottom: 1px solid rgba(var(--r),var(--g),var(--b),0.3);
+    padding-bottom: 1px; transition: border-color 0.2s;
+  }
+  .credit-link:hover { border-color: rgb(var(--r),var(--g),var(--b)); }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 32px 0 48px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 10px; color: var(--muted); letter-spacing: 0.1em;
+    animation: fadeUp 1.2s 0.3s ease both;
+  }
+
+  footer a {
+    color: rgb(var(--r),var(--g),var(--b));
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+  footer a:hover { opacity: 0.7; }
+
+  /* ── ANIM ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .step:nth-child(1) { animation-delay: 0.2s; }
+  .step:nth-child(2) { animation-delay: 0.3s; }
+  .step:nth-child(3) { animation-delay: 0.4s; }
+
+  @media (max-width: 640px) {
+    .steps { grid-template-columns: 1fr; }
+    .credits { grid-template-columns: 1fr; }
+    header { flex-direction: column; gap: 16px; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+
+<div class="wrap">
+
+  <header>
+    <div class="logo">
+      <span class="logo-chroma">CHROMA</span><span class="logo-sync">SYNC</span>
+    </div>
+    <div class="header-tag">Open Source · Local App</div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-eyebrow">Govee × Spotify</div>
+    <h1 class="hero-title">
+      Your music<br/>
+      <span class="dim">becomes your</span><br/>
+      <span class="lit">light.</span>
+    </h1>
+    <p class="hero-sub">
+      CHROMASYNC is a local-network app that reads your currently playing Spotify track,
+      extracts the dominant album art color, and syncs it to your Govee smart bulbs in real time —
+      with smooth exponential color transitions between songs.
+    </p>
+    <div class="pill-row">
+      <div class="pill accent">Real-time color sync</div>
+      <div class="pill accent">BPM-aware</div>
+      <div class="pill">Govee LAN API</div>
+      <div class="pill">Spotify Web API</div>
+      <div class="pill">Local network only</div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-label">How it works</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-title">Spotify reads now playing</div>
+        <div class="step-body">
+          Polls the Spotify Web API every second to detect track changes,
+          progress, and queue — without hammering the API.
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-title">Color extracted from art</div>
+        <div class="step-body">
+          Album art is quantized using Pillow to find the most vibrant dominant
+          color, routed through RGBWW logic for the H6008's 5-channel LED array.
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-title">Bulbs sync over LAN</div>
+        <div class="step-body">
+          Color commands are sent via the Govee LAN UDP API with per-device
+          rate limiting. Natural track endings trigger smooth exponential blends.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="credits">
+    <div class="credit-card">
+      <div class="credit-label">BPM Data powered by</div>
+      <div class="credit-name">GetSongBPM</div>
+      <div class="credit-desc">
+        Provides tempo, key, and time signature data for currently playing tracks,
+        enabling BPM-aware lighting effects in CHROMASYNC.
+      </div>
+      <a class="credit-link" href="https://getsongbpm.com" target="_blank" rel="noopener">
+        getsongbpm.com →
+      </a>
+    </div>
+    <div class="credit-card">
+      <div class="credit-label">Smart lighting by</div>
+      <div class="credit-name">Govee LAN API</div>
+      <div class="credit-desc">
+        Local-network UDP control of Govee H6008 RGBWW smart bulbs —
+        no cloud, no latency, direct device communication.
+      </div>
+      <a class="credit-link" href="https://govee.com" target="_blank" rel="noopener">
+        govee.com →
+      </a>
+    </div>
+  </section>
+
+  <footer>
+    <span>CHROMASYNC — Govee × Spotify Color Sync</span>
+    <span>
+      BPM data by <a href="https://getsongbpm.com" target="_blank" rel="noopener">GetSongBPM</a>
+    </span>
+  </footer>
+
+</div>
+</body>
+</html>
