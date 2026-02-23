@@ -30,7 +30,6 @@
     overflow-x: hidden;
   }
 
-  /* ── noise grain ── */
   body::after {
     content: '';
     position: fixed; inset: 0; pointer-events: none; z-index: 999;
@@ -39,7 +38,6 @@
     background-size: 180px;
   }
 
-  /* ── background glow ── */
   .bg-glow {
     position: fixed; inset: 0; pointer-events: none; z-index: 0;
     background:
@@ -49,7 +47,6 @@
 
   .wrap { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 0 32px; }
 
-  /* ── HEADER ── */
   header {
     padding: 48px 0 0;
     display: flex; align-items: center; justify-content: space-between;
@@ -73,7 +70,6 @@
     padding: 5px 12px; border-radius: 99px;
   }
 
-  /* ── HERO ── */
   .hero {
     padding: 100px 0 80px;
     animation: fadeUp 0.9s 0.1s ease both;
@@ -118,7 +114,6 @@
     background: rgba(var(--r),var(--g),var(--b),0.06);
   }
 
-  /* ── HOW IT WORKS ── */
   .section { padding: 80px 0; border-top: 1px solid var(--border); }
   .section-label {
     font-size: 10px; letter-spacing: 0.25em; color: var(--muted);
@@ -152,7 +147,6 @@
   }
   .step-body { font-size: 11px; color: var(--muted); line-height: 1.7; }
 
-  /* ── CREDITS ── */
   .credits {
     padding: 80px 0;
     border-top: 1px solid var(--border);
@@ -182,7 +176,6 @@
   }
   .credit-link:hover { border-color: rgb(var(--r),var(--g),var(--b)); }
 
-  /* ── FOOTER ── */
   footer {
     padding: 32px 0 48px;
     border-top: 1px solid var(--border);
@@ -198,7 +191,6 @@
   }
   footer a:hover { opacity: 0.7; }
 
-  /* ── ANIM ── */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(20px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -281,36 +273,13 @@
   <section class="credits">
     <div class="credit-card">
       <div class="credit-label">BPM Data powered by</div>
-      <div class="credit-name">iGetSong</div>
+      <div class="credit-name">GetSongBPM</div>
       <div class="credit-desc">
         Provides tempo, key, and time signature data for currently playing tracks,
         enabling BPM-aware lighting effects in CHROMASYNC.
       </div>
-      <a class="credit-link" href="https://igetsong.com" target="_blank">
-        igetsong.com →
-      </a>
-    </div>
-    <div class="credit-card">
-      <div class="credit-label">Smart lighting by</div>
-      <div class="credit-name">Govee LAN API</div>
-      <div class="credit-desc">
-        Local-network UDP control of Govee H6008 RGBWW smart bulbs —
-        no cloud, no latency, direct device communication.
-      </div>
-      <a class="credit-link" href="https://govee.com" target="_blank">
-        govee.com →
-      </a>
-    </div>
-<section class="credits">
-    <div class="credit-card">
-      <div class="credit-label">BPM Data powered by</div>
-      <div class="credit-name">iGetSong</div>
-      <div class="credit-desc">
-        Provides tempo, key, and time signature data for currently playing tracks,
-        enabling BPM-aware lighting effects in CHROMASYNC.
-      </div>
-      <a class="credit-link" href="https://igetsong.com" target="_blank">
-        igetsong.com →
+      <a class="credit-link" href="https://getsongbpm.com" target="_blank">
+        getsongbpm.com →
       </a>
     </div>
     <div class="credit-card">
@@ -329,7 +298,7 @@
   <footer>
     <span>CHROMASYNC — Govee × Spotify Color Sync</span>
     <span>
-      BPM data by <a href="https://igetsong.com" target="_blank">iGetSong</a>
+      BPM data by <a href="https://getsongbpm.com" target="_blank">GetSongBPM</a>
     </span>
   </footer>
 
